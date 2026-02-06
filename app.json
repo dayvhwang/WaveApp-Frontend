@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "wavesocial-app",
-    "slug": "wavesocial-app",
+    "name": "Wave",
+    "slug": "Wave",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
