@@ -54,7 +54,7 @@ export default function SignUpScreen() {
           </Pressable>
         </View>
         <View style={{ alignItems: 'center', marginBottom: spacing.xxl }}>
-          <WaveLogoIcon width={40 * (387 / 231)} height={40} color="#0B5CFF" />
+          <WaveLogoIcon width={40 * (387 / 231)} height={40} color="#111111" />
         </View>
 
         <View style={{ gap: spacing.lg }}>
@@ -73,6 +73,8 @@ export default function SignUpScreen() {
                 borderRadius: radius.sm,
                 padding: spacing.lg,
                 fontSize: 16,
+                fontFamily: 'Hubballi_400Regular',
+                letterSpacing: -0.4,
                 color: colors.text,
               }}
             />
@@ -91,6 +93,8 @@ export default function SignUpScreen() {
                 borderRadius: radius.sm,
                 padding: spacing.lg,
                 fontSize: 16,
+                fontFamily: 'Hubballi_400Regular',
+                letterSpacing: -0.4,
                 color: colors.text,
               }}
             />
@@ -115,7 +119,7 @@ export default function SignUpScreen() {
           }}
           style={{ marginTop: spacing.xl, alignItems: 'center' }}>
           <Text style={[typography.body, { color: colors.mutedText }]}>
-            Already have an account? <Text style={{ color: colors.primary, fontWeight: '600' }}>Log in</Text>
+            Already have an account? <Text style={[typography.bodyBold, { color: colors.primary }]}>Log in</Text>
           </Text>
         </Pressable>
       </KeyboardAvoidingView>

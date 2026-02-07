@@ -54,7 +54,7 @@ export default function LoginScreen() {
           </Pressable>
         </View>
         <View style={{ alignItems: 'center', marginBottom: spacing.xxl }}>
-          <WaveLogoIcon width={40 * (387 / 231)} height={40} color="#0B5CFF" />
+          <WaveLogoIcon width={40 * (387 / 231)} height={40} color="#111111" />
         </View>
 
         <View style={{ gap: spacing.lg }}>
@@ -73,6 +73,8 @@ export default function LoginScreen() {
                 borderRadius: radius.sm,
                 padding: spacing.lg,
                 fontSize: 16,
+                fontFamily: 'Hubballi_400Regular',
+                letterSpacing: -0.4,
                 color: colors.text,
               }}
             />
@@ -91,6 +93,8 @@ export default function LoginScreen() {
                 borderRadius: radius.sm,
                 padding: spacing.lg,
                 fontSize: 16,
+                fontFamily: 'Hubballi_400Regular',
+                letterSpacing: -0.4,
                 color: colors.text,
               }}
             />

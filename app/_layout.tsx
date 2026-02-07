@@ -1,9 +1,4 @@
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+import { Hubballi_400Regular } from '@expo-google-fonts/hubballi';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -18,10 +13,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    Hubballi_400Regular,
   });
 
   const onLayoutRootView = useCallback(async () => {
@@ -37,7 +29,7 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#111827" />
+        <ActivityIndicator size="large" color="#111111" />
       </View>
     );
   }

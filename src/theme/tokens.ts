@@ -4,15 +4,15 @@
  */
 
 export const colors = {
-  brandBlack: '#111827',
-  primary: '#111827',
-  surface: '#FFFFFF',
+  brandBlack: '#111111',
+  primary: '#111111',
+  surface: '#ffffff',
   surfaceElevated: '#F9FAFB',
   mutedText: '#6B7280',
-  text: '#111827',
+  text: '#111111',
   border: '#E5E7EB',
   chatBubbleGuide: '#E5E7EB',
-  chatBubbleUser: '#FFFFFF',
+  chatBubbleUser: '#ffffff',
   chatBubbleUserBorder: '#E5E7EB',
 } as const;
 

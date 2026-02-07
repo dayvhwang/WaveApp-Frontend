@@ -1,44 +1,53 @@
 /**
- * Wave typography — Inter Display for all text.
- * Semantic type scale: overline, caption, body, title, nav.
+ * Wave typography — Hubballi for all text.
+ * Display-style kerning: tighter letter spacing for a polished, UX-friendly look.
  */
 
 import { TextStyle } from 'react-native';
 
 export const typography = {
   overline: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 10,
-    letterSpacing: 1.5,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   } as TextStyle,
   caption: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 12,
+    letterSpacing: -0.2,
     color: '#6B7280',
   } as TextStyle,
   body: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 16,
     lineHeight: 24,
+    letterSpacing: -0.4,
   } as TextStyle,
   bodyBold: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 16,
     lineHeight: 24,
+    fontWeight: '600',
+    letterSpacing: -0.4,
   } as TextStyle,
   title: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 20,
     lineHeight: 28,
+    fontWeight: '600',
+    letterSpacing: -0.5,
   } as TextStyle,
   titleLarge: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 26,
     lineHeight: 32,
+    fontWeight: '600',
+    letterSpacing: -0.6,
   } as TextStyle,
   nav: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 10,
+    letterSpacing: -0.3,
   } as TextStyle,
 } as const;

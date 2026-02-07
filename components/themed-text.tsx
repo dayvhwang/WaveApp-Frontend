@@ -35,26 +35,36 @@ export function ThemedText({
 
 const styles = StyleSheet.create({
   default: {
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 16,
     lineHeight: 24,
+    letterSpacing: -0.4,
   },
   defaultSemiBold: {
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '600',
+    letterSpacing: -0.4,
   },
   title: {
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 32,
     fontWeight: 'bold',
     lineHeight: 32,
+    letterSpacing: -0.6,
   },
   subtitle: {
+    fontFamily: 'Hubballi_400Regular',
     fontSize: 20,
     fontWeight: 'bold',
+    letterSpacing: -0.5,
   },
   link: {
+    fontFamily: 'Hubballi_400Regular',
     lineHeight: 30,
     fontSize: 16,
     color: '#0a7ea4',
+    letterSpacing: -0.4,
   },
 });

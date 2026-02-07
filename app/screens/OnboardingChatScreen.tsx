@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -9,11 +10,18 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChatBubble } from '@/components/onboarding/ChatBubble';
 import { OnboardingInputBar } from '@/components/onboarding/OnboardingInputBar';
 import { SuggestedAnswerButton } from '@/components/onboarding/SuggestedAnswerButton';
+import { TypingIndicator } from '@/components/onboarding/TypingIndicator';
 import { WaveLogo } from '@/components/WaveLogo';
 import { useApp } from '@/src/context/AppContext';
 import { onboardingSteps } from '@/src/onboarding/flow';
@@ -24,9 +32,49 @@ interface Message {
   id: string;
   type: 'guide' | 'user';
   text: string;
+  animateWords?: boolean;
 }
 
+const TYPING_DELAY_MS = 1300;
+const SUGGESTED_ANSWERS_DELAY_MS = 500;
+
 const HEADER_HEIGHT = 56;
+
+function AnimatedContinueButton({ onPress }: { onPress: () => void }) {
+  const scale = useSharedValue(0.96);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    scale.value = withTiming(1, {
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+    });
+    opacity.value = withTiming(1, {
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [scale, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Pressable
+        onPress={onPress}
+        style={{
+          backgroundColor: '#111111',
+          paddingVertical: spacing.lg,
+          borderRadius: 12,
+          alignItems: 'center',
+        }}>
+        <Text style={[typography.bodyBold, { color: '#ffffff' }]}>Continue</Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
 
 export default function OnboardingChatScreen() {
   const router = useRouter();
@@ -38,15 +86,38 @@ export default function OnboardingChatScreen() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [inputValue, setInputValue] = useState('');
   const [showContinue, setShowContinue] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showSuggestedAnswers, setShowSuggestedAnswers] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestedAnswersTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scrollToEndDebounced = useCallback(() => {
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+      scrollTimeoutRef.current = null;
+    }, 150);
+  }, []);
 
   const currentStep = onboardingSteps[currentStepIndex];
   const isOutcome = currentStep?.isOutcome ?? false;
   const suggestedAnswers = currentStep?.suggestedAnswers ?? [];
 
-  const addMessage = (type: 'guide' | 'user', text: string) => {
+  const addMessage = (
+    type: 'guide' | 'user',
+    text: string,
+    animateWords?: boolean
+  ) => {
     setMessages((prev) => [
       ...prev,
-      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`, type, text },
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        type,
+        text,
+        animateWords,
+      },
     ]);
   };
 
@@ -68,12 +139,29 @@ export default function OnboardingChatScreen() {
 
     const nextStep = onboardingSteps[nextIndex];
     setCurrentStepIndex(nextIndex);
-    addMessage('guide', nextStep.guideMessage);
     setInputValue('');
 
-    if (nextStep.isOutcome) {
-      setShowContinue(true);
-    }
+    setIsGenerating(true);
+    setShowSuggestedAnswers(false);
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (suggestedAnswersTimeoutRef.current) clearTimeout(suggestedAnswersTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsGenerating(false);
+      addMessage('guide', nextStep.guideMessage, true);
+      setShowContinue(nextStep.isOutcome ?? false);
+      typingTimeoutRef.current = null;
+
+      if ((nextStep.suggestedAnswers?.length ?? 0) > 0) {
+        suggestedAnswersTimeoutRef.current = setTimeout(() => {
+          setShowSuggestedAnswers(true);
+          suggestedAnswersTimeoutRef.current = null;
+        }, SUGGESTED_ANSWERS_DELAY_MS);
+      } else {
+        setShowSuggestedAnswers(true);
+      }
+    }, TYPING_DELAY_MS);
   };
 
   const handleSuggestedPress = (answer: string) => {
@@ -99,8 +187,31 @@ export default function OnboardingChatScreen() {
     }
   }, []);
 
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (suggestedAnswersTimeoutRef.current) clearTimeout(suggestedAnswersTimeoutRef.current);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['top']}>
       <View style={{ flex: 1 }}>
         {/* Header */}
         <View
@@ -119,7 +230,7 @@ export default function OnboardingChatScreen() {
               goToLogin();
               router.replace('/login');
             }}>
-            <Text style={[typography.bodyBold, { color: '#111827' }]}>Log in</Text>
+            <Text style={[typography.bodyBold, { color: '#111111' }]}>Log in</Text>
           </Pressable>
         </View>
 
@@ -127,61 +238,66 @@ export default function OnboardingChatScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + HEADER_HEIGHT : 0}>
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + HEADER_HEIGHT - 16 : 0}>
           <ScrollView
             ref={scrollRef}
             contentContainerStyle={{
               padding: spacing.lg,
-              paddingBottom: spacing.xxl,
+              paddingBottom:
+                spacing.xxl +
+                (suggestedAnswers.length > 0 && !isGenerating && showSuggestedAnswers
+                  ? 52
+                  : 0),
               gap: spacing.md,
             }}
-            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+            onContentSizeChange={scrollToEndDebounced}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="none">
             {messages.map((msg) => (
-              <ChatBubble key={msg.id} text={msg.text} isGuide={msg.type === 'guide'} />
+              <ChatBubble
+                key={msg.id}
+                text={msg.text}
+                isGuide={msg.type === 'guide'}
+                animateWords={msg.animateWords}
+                entrance="slideIn"
+              />
             ))}
+            {isGenerating && <TypingIndicator />}
           </ScrollView>
 
           {/* Suggested answers or input bar */}
           <View
             style={{
               paddingHorizontal: spacing.lg,
-              paddingBottom: Math.max(insets.bottom, spacing.sm),
+              paddingBottom: keyboardVisible ? 0 : Math.max(insets.bottom, spacing.sm),
+              marginBottom: keyboardVisible ? -26 : 0,
               gap: spacing.md,
               borderTopWidth: 1,
               borderTopColor: '#E5E7EB',
               paddingTop: spacing.md,
-              backgroundColor: '#FFF',
+              backgroundColor: '#ffffff',
             }}>
             {showContinue ? (
-              <Pressable
-                onPress={handleContinue}
-                style={{
-                  backgroundColor: '#111827',
-                  paddingVertical: spacing.lg,
-                  borderRadius: 12,
-                  alignItems: 'center',
-                }}>
-                <Text style={[typography.bodyBold, { color: '#FFF' }]}>Continue</Text>
-              </Pressable>
+              <AnimatedContinueButton onPress={handleContinue} />
             ) : (
               <>
-                {suggestedAnswers.length > 0 && (
+                {suggestedAnswers.length > 0 && !isGenerating && showSuggestedAnswers && (
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
+                    keyboardShouldPersistTaps="always"
                     contentContainerStyle={{
                       flexDirection: 'row',
                       gap: spacing.sm,
                       paddingHorizontal: spacing.lg,
                     }}
                     style={{ marginHorizontal: -spacing.lg }}>
-                    {suggestedAnswers.map((ans) => (
+                    {suggestedAnswers.map((ans, idx) => (
                       <View key={ans} style={{ flexShrink: 0 }}>
                         <SuggestedAnswerButton
                           label={ans}
                           onPress={() => handleSuggestedPress(ans)}
+                          index={idx}
                         />
                       </View>
                     ))}

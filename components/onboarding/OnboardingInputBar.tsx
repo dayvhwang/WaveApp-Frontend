@@ -57,7 +57,8 @@ export function OnboardingInputBar({
           fontSize: 16,
           paddingVertical: spacing.sm,
           color: colors.text,
-          fontFamily: 'Inter_400Regular',
+          fontFamily: 'Hubballi_400Regular',
+          letterSpacing: -0.4,
         }}
       />
       <View

@@ -1,13 +1,33 @@
 /**
- * Wave wordmark SVG — "wave" in bold type, scalable.
- * Uses SVG Text so it clearly reads "wave" (Figma Logo / Word mark style).
+ * Wave wordmark SVG — path-based from Figma (Logo / Word mark).
+ * Icon and wordmark are both path-based — no font dependency.
  */
 
 import React from 'react';
-import Svg, { Text } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
-const VIEWBOX_WIDTH = 100;
-const VIEWBOX_HEIGHT = 32;
+const VIEWBOX_WIDTH = 600;
+const VIEWBOX_HEIGHT = 120;
+
+// Paths from Figma — "wave" as outlined letterforms
+const PATHS = [
+  {
+    d: 'M539.699 0C549.199 0 557.49 1.40094 564.979 4.21094C572.469 7.02094 578.809 11.0909 583.989 16.4209C589.179 21.7509 593.14 28.2707 595.87 35.9707C598.61 43.6806 599.979 52.3609 599.979 62.0107V66.1201H517.66L517.665 66.8838C517.909 83.2117 525.827 91.3809 541.43 91.3809C549.93 91.3808 556.34 87.9207 560.66 81.0107H598.47C590.83 106.361 571.75 119.04 541.21 119.04C531.85 119.04 523.28 117.64 515.5 114.83C507.72 112.02 501.06 108.021 495.51 102.841C489.96 97.6509 485.68 91.4606 482.66 84.2607C479.63 77.0608 478.12 68.9905 478.12 60.0605C478.12 51.1305 479.559 42.5303 482.439 35.1104C485.319 27.6904 489.42 21.3902 494.76 16.2002C500.09 11.0103 506.53 7.0209 514.1 4.21094C521.659 1.40097 530.199 3.59792e-05 539.699 0ZM540.79 25.2607C534.74 25.2607 529.799 26.8507 525.989 30.0107C522.17 33.1807 519.76 37.6505 518.75 43.4102H563.47C562.17 37.9403 559.509 33.5504 555.479 30.2305C551.45 26.9206 546.55 25.2608 540.79 25.2607Z',
+    fillRule: 'evenodd' as const,
+    clipRule: 'evenodd' as const,
+  },
+  {
+    d: 'M268.56 0.630859C282.39 0.630859 293.84 5.46133 302.91 15.1113V4.09082H342.22V114.931H302.899V102.611C294.539 113.131 283.239 118.381 268.979 118.381C260.91 118.381 253.499 116.901 246.729 113.951C239.96 111.001 234.05 106.861 229.01 101.531C223.97 96.2012 220.039 89.9405 217.239 82.7305C214.429 75.5306 213.029 67.6805 213.029 59.1807C213.029 51.2607 214.4 43.7305 217.14 36.6006C219.87 29.4707 223.69 23.2411 228.59 17.9111C233.49 12.5811 239.32 8.37051 246.09 5.27051C252.86 2.17061 260.35 0.630859 268.56 0.630859ZM278.91 34.3506C275.45 34.3506 271.959 35.001 268.859 36.291C265.76 37.5909 263.1 39.3907 260.87 41.6904C258.63 44.0004 256.87 46.6311 255.58 49.5811C254.28 52.5311 253.64 55.7412 253.64 59.2012L253.647 59.8525C253.724 63.1983 254.371 66.3242 255.58 69.2305C256.88 72.3305 258.64 75.0311 260.87 77.3311C263.1 79.6308 265.76 81.4305 268.859 82.7305C271.959 84.0305 275.31 84.6709 278.91 84.6709C282.51 84.6708 285.639 84.0204 288.739 82.7305C291.839 81.4305 294.5 79.631 296.729 77.3311C298.96 75.0311 300.76 72.3608 302.13 69.3408C303.5 66.3209 304.18 63.071 304.18 59.6211C304.18 56.1712 303.49 52.891 302.13 49.791C300.76 46.691 298.96 43.9904 296.729 41.6904C294.49 39.3906 291.829 37.581 288.739 36.291C285.639 34.9911 282.37 34.3506 278.91 34.3506Z',
+    fillRule: 'evenodd' as const,
+    clipRule: 'evenodd' as const,
+  },
+  {
+    d: 'M70.21 62.4307L97.8701 4.09082H122.5L150.16 64.1504L178.029 4.09082H221.46L163.56 114.931H137.42L109.76 54.2207L83.3994 114.931H56.8193L0 4.09082H43.6299L70.21 62.4307Z',
+  },
+  {
+    d: 'M415.899 60.9111L442.689 4.09082H486.33L428.64 114.931H402.5L345.46 4.09082H389.54L415.899 60.9111Z',
+  },
+];
 
 interface WaveWordmarkProps {
   width: number;
@@ -19,13 +39,9 @@ interface WaveWordmarkProps {
 export function WaveWordmark({
   width,
   height = width * (VIEWBOX_HEIGHT / VIEWBOX_WIDTH),
-  color = '#0A0A0A',
+  color = '#111111',
   accessibilityLabel = 'Wave',
 }: WaveWordmarkProps) {
-  // Font size in viewBox units so text scales with the SVG
-  const fontSize = 28;
-  const letterSpacing = -0.56; // Figma -2%
-
   return (
     <Svg
       width={width}
@@ -35,16 +51,15 @@ export function WaveWordmark({
       accessible
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="image">
-      <Text
-        x={0}
-        y={fontSize}
-        fill={color}
-        fontFamily="Inter_700Bold"
-        fontSize={fontSize}
-        letterSpacing={letterSpacing}
-        fontWeight="700">
-        wave
-      </Text>
+      {PATHS.map((path, i) => (
+        <Path
+          key={i}
+          d={path.d}
+          fill={color}
+          {...(path.fillRule && { fillRule: path.fillRule })}
+          {...(path.clipRule && { clipRule: path.clipRule })}
+        />
+      ))}
     </Svg>
   );
 }
