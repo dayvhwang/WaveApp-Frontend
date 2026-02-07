@@ -9,8 +9,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
-import { WaveLogo } from '@/components/WaveLogo';
+import { WaveLogoIcon } from '@/components/WaveLogoIcon';
 import { useApp } from '@/src/context/AppContext';
 import { colors, radius, spacing } from '@/src/theme/tokens';
 import { typography } from '@/src/theme/typography';
@@ -18,7 +19,6 @@ import { typography } from '@/src/theme/typography';
 export default function SignUpScreen() {
   const router = useRouter();
   const { completeSignUp, setScreen } = useApp();
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -27,33 +27,37 @@ export default function SignUpScreen() {
     router.replace('/(tabs)');
   };
 
+  const handleBack = () => {
+    setScreen('login');
+    router.replace({ pathname: '/login', params: { direction: 'back' } });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxxl }}>
+        style={{ flex: 1, paddingHorizontal: spacing.xl, paddingTop: 24 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg }}>
+          <Pressable
+            onPress={handleBack}
+            style={({ pressed }) => ({
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: pressed ? colors.surfaceElevated : 'transparent',
+            })}
+            accessibilityLabel="Go back"
+            accessibilityRole="button">
+            <Ionicons name="chevron-back" size={28} color={colors.text} />
+          </Pressable>
+        </View>
         <View style={{ alignItems: 'center', marginBottom: spacing.xxl }}>
-          <WaveLogo size="lg" showWordmark={false} />
+          <WaveLogoIcon width={40 * (387 / 231)} height={40} color="#0B5CFF" />
         </View>
 
         <View style={{ gap: spacing.lg }}>
-          <View>
-            <Text style={[typography.caption, { marginBottom: spacing.sm }]}>Name</Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder="Your name"
-              placeholderTextColor={colors.mutedText}
-              style={{
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: radius.sm,
-                padding: spacing.lg,
-                fontSize: 16,
-                color: colors.text,
-              }}
-            />
-          </View>
           <View>
             <Text style={[typography.caption, { marginBottom: spacing.sm }]}>Email</Text>
             <TextInput

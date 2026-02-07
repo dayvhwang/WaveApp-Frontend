@@ -1,14 +1,15 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChatBubble } from '@/components/onboarding/ChatBubble';
 import { OnboardingInputBar } from '@/components/onboarding/OnboardingInputBar';
@@ -25,9 +26,14 @@ interface Message {
   text: string;
 }
 
+const HEADER_HEIGHT = 56;
+
 export default function OnboardingChatScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { completeOnboarding, goToLogin } = useApp();
+  const inputRef = useRef<TextInput>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [inputValue, setInputValue] = useState('');
@@ -78,6 +84,8 @@ export default function OnboardingChatScreen() {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
     advanceStep(trimmed);
+    // Keep input focused so user can immediately type the next response
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   const handleContinue = () => {
@@ -105,7 +113,7 @@ export default function OnboardingChatScreen() {
             borderBottomWidth: 1,
             borderBottomColor: '#E5E7EB',
           }}>
-          <WaveLogo size="sm" showIcon={false} />
+          <WaveLogo size="md" showIcon={false} />
           <Pressable
             onPress={() => {
               goToLogin();
@@ -118,19 +126,18 @@ export default function OnboardingChatScreen() {
         {/* Chat area */}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}>
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + HEADER_HEIGHT : 0}>
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={{
               padding: spacing.lg,
               paddingBottom: spacing.xxl,
               gap: spacing.md,
             }}
-            ref={(ref) => {
-              if (ref) {
-                setTimeout(() => ref.scrollToEnd({ animated: true }), 100);
-              }
-            }}
-            onContentSizeChange={() => {}}>
+            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="none">
             {messages.map((msg) => (
               <ChatBubble key={msg.id} text={msg.text} isGuide={msg.type === 'guide'} />
             ))}
@@ -140,7 +147,7 @@ export default function OnboardingChatScreen() {
           <View
             style={{
               paddingHorizontal: spacing.lg,
-              paddingBottom: spacing.lg,
+              paddingBottom: Math.max(insets.bottom, spacing.sm),
               gap: spacing.md,
               borderTopWidth: 1,
               borderTopColor: '#E5E7EB',
@@ -167,8 +174,9 @@ export default function OnboardingChatScreen() {
                     contentContainerStyle={{
                       flexDirection: 'row',
                       gap: spacing.sm,
-                      paddingRight: spacing.lg,
-                    }}>
+                      paddingHorizontal: spacing.lg,
+                    }}
+                    style={{ marginHorizontal: -spacing.lg }}>
                     {suggestedAnswers.map((ans) => (
                       <View key={ans} style={{ flexShrink: 0 }}>
                         <SuggestedAnswerButton
@@ -180,6 +188,7 @@ export default function OnboardingChatScreen() {
                   </ScrollView>
                 )}
                 <OnboardingInputBar
+                  inputRef={inputRef}
                   value={inputValue}
                   onChangeText={setInputValue}
                   onSubmit={handleSubmit}

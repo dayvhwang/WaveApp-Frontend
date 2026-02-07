@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
 import { TextInput, View } from 'react-native';
 
 import { colors, radius, spacing } from '@/src/theme/tokens';
@@ -8,6 +9,7 @@ interface OnboardingInputBarProps {
   onChangeText: (text: string) => void;
   onSubmit?: () => void;
   placeholder?: string;
+  inputRef?: React.RefObject<TextInput | null>;
 }
 
 export function OnboardingInputBar({
@@ -15,6 +17,7 @@ export function OnboardingInputBar({
   onChangeText,
   onSubmit,
   placeholder = 'Type a message',
+  inputRef,
 }: OnboardingInputBarProps) {
   return (
     <View
@@ -22,7 +25,7 @@ export function OnboardingInputBar({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.surface,
-        borderRadius: radius.lg,
+        borderRadius: radius.full,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
         borderWidth: 1,
@@ -41,11 +44,14 @@ export function OnboardingInputBar({
         <Ionicons name="add" size={22} color={colors.mutedText} />
       </View>
       <TextInput
+        ref={inputRef}
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmit}
         placeholder={placeholder}
         placeholderTextColor={colors.mutedText}
+        returnKeyType="send"
+        blurOnSubmit={false}
         style={{
           flex: 1,
           fontSize: 16,

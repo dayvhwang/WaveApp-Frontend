@@ -44,10 +44,24 @@ export default function RootLayout() {
 
   return (
     <AppProvider>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}>
         <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="login" />
+        <Stack.Screen
+          name="onboarding"
+          options={({ route }) => ({
+            animation: (route.params as { direction?: string })?.direction === 'back' ? 'slide_from_left' : 'slide_from_right',
+          })}
+        />
+        <Stack.Screen
+          name="login"
+          options={({ route }) => ({
+            animation: (route.params as { direction?: string })?.direction === 'back' ? 'slide_from_left' : 'slide_from_right',
+          })}
+        />
         <Stack.Screen name="signup" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />

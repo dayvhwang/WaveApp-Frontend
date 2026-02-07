@@ -8,9 +8,9 @@ import { typography } from '@/src/theme/typography';
 
 export default function ChatsScreen() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['top']}>
       <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.lg }}>
-        <WaveLogo size="sm" showIcon={false} />
+        <WaveLogo size="md" showIcon={false} />
       </View>
       <FlatList
         data={mockChats}

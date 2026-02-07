@@ -18,9 +18,9 @@ interface WaveLogoProps {
 }
 
 const SIZE_CONFIG = {
-  sm: { iconSize: 20, wordmarkWidth: 64 },
-  md: { iconSize: 28, wordmarkWidth: 90 },
-  lg: { iconSize: 36, wordmarkWidth: 116 },
+  sm: { iconSize: 20, wordmarkWidth: 80 },
+  md: { iconSize: 28, wordmarkWidth: 110 },
+  lg: { iconSize: 36, wordmarkWidth: 140 },
 } as const;
 
 export function WaveLogo({ size = 'md', showWordmark = true, showIcon = true }: WaveLogoProps) {
