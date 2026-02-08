@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -12,20 +13,21 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ChatBubble } from '@/components/onboarding/ChatBubble';
+import { ChatBubble, getWordRevealDuration } from '@/components/onboarding/ChatBubble';
 import { OnboardingInputBar } from '@/components/onboarding/OnboardingInputBar';
 import { SuggestedAnswerButton } from '@/components/onboarding/SuggestedAnswerButton';
 import { TypingIndicator } from '@/components/onboarding/TypingIndicator';
 import { WaveLogo } from '@/components/WaveLogo';
 import { useApp } from '@/src/context/AppContext';
 import { onboardingSteps } from '@/src/onboarding/flow';
-import { spacing } from '@/src/theme/tokens';
+import { colors, spacing } from '@/src/theme/tokens';
 import { typography } from '@/src/theme/typography';
 
 interface Message {
@@ -36,9 +38,93 @@ interface Message {
 }
 
 const TYPING_DELAY_MS = 1300;
-const SUGGESTED_ANSWERS_DELAY_MS = 500;
 
 const HEADER_HEIGHT = 56;
+const SUGGESTIONS_ANIM_DURATION = 260;
+
+function SuggestionsSection({
+  suggestedAnswers,
+  collapsed,
+  onToggleCollapsed,
+  onSuggestedPress,
+}: {
+  suggestedAnswers: string[];
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  onSuggestedPress: (ans: string) => void;
+}) {
+  const collapseProgress = useSharedValue(collapsed ? 1 : 0);
+
+  useEffect(() => {
+    collapseProgress.value = withTiming(collapsed ? 1 : 0, {
+      duration: SUGGESTIONS_ANIM_DURATION,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [collapsed, collapseProgress]);
+
+  const animatedListStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(collapseProgress.value, [0, 1], [1, 0]),
+    maxHeight: interpolate(collapseProgress.value, [0, 1], [120, 0]),
+    overflow: 'hidden' as const,
+  }));
+
+  return (
+    <View>
+      <Pressable
+        onPress={onToggleCollapsed}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingVertical: spacing.sm,
+          marginHorizontal: -spacing.lg,
+          paddingHorizontal: spacing.lg,
+        }}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <Text style={[typography.caption, { color: colors.mutedText, fontSize: 11 }]}>
+          Suggestions
+        </Text>
+        <View
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            backgroundColor: colors.surfaceElevated,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <Ionicons
+            name={collapsed ? 'chevron-down' : 'chevron-up'}
+            size={18}
+            color={colors.mutedText}
+          />
+        </View>
+      </Pressable>
+      <Animated.View style={animatedListStyle}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyboardShouldPersistTaps="always"
+          contentContainerStyle={{
+            flexDirection: 'row',
+            gap: spacing.sm,
+            paddingHorizontal: spacing.lg,
+          }}
+          style={{ marginHorizontal: -spacing.lg }}>
+          {suggestedAnswers.map((ans, idx) => (
+            <View key={ans} style={{ flexShrink: 0 }}>
+              <SuggestedAnswerButton
+                label={ans}
+                onPress={() => onSuggestedPress(ans)}
+                index={idx}
+              />
+            </View>
+          ))}
+        </ScrollView>
+      </Animated.View>
+    </View>
+  );
+}
 
 function AnimatedContinueButton({ onPress }: { onPress: () => void }) {
   const scale = useSharedValue(0.96);
@@ -79,16 +165,18 @@ function AnimatedContinueButton({ onPress }: { onPress: () => void }) {
 export default function OnboardingChatScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { completeOnboarding, goToLogin } = useApp();
+  const { completeOnboarding, goToLogin, onboardingProgress, saveOnboardingProgress } = useApp();
   const inputRef = useRef<TextInput>(null);
   const scrollRef = useRef<ScrollView>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [messages, setMessages] = useState<Message[]>(() => onboardingProgress.messages);
+  const [currentStepIndex, setCurrentStepIndex] = useState(() => onboardingProgress.currentStepIndex);
   const [inputValue, setInputValue] = useState('');
-  const [showContinue, setShowContinue] = useState(false);
+  const [showContinue, setShowContinue] = useState(() => onboardingProgress.showContinue);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showSuggestedAnswers, setShowSuggestedAnswers] = useState(true);
+  const [showSuggestedAnswers, setShowSuggestedAnswers] = useState(() => onboardingProgress.showSuggestedAnswers);
+  const [suggestedAnswersCollapsed, setSuggestedAnswersCollapsed] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [initialMessageCount] = useState(() => onboardingProgress.messages.length);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suggestedAnswersTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -143,6 +231,7 @@ export default function OnboardingChatScreen() {
 
     setIsGenerating(true);
     setShowSuggestedAnswers(false);
+    setSuggestedAnswersCollapsed(false);
 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     if (suggestedAnswersTimeoutRef.current) clearTimeout(suggestedAnswersTimeoutRef.current);
@@ -154,10 +243,11 @@ export default function OnboardingChatScreen() {
       typingTimeoutRef.current = null;
 
       if ((nextStep.suggestedAnswers?.length ?? 0) > 0) {
+        const revealDuration = getWordRevealDuration(nextStep.guideMessage);
         suggestedAnswersTimeoutRef.current = setTimeout(() => {
           setShowSuggestedAnswers(true);
           suggestedAnswersTimeoutRef.current = null;
-        }, SUGGESTED_ANSWERS_DELAY_MS);
+        }, revealDuration);
       } else {
         setShowSuggestedAnswers(true);
       }
@@ -186,6 +276,18 @@ export default function OnboardingChatScreen() {
       setMessages([{ id: '0', type: 'guide', text: currentStep.guideMessage }]);
     }
   }, []);
+
+  // Persist progress when user navigates to login/signup and back (skip during typing)
+  useEffect(() => {
+    if (!isGenerating) {
+      saveOnboardingProgress({
+        messages,
+        currentStepIndex,
+        showContinue,
+        showSuggestedAnswers,
+      });
+    }
+  }, [messages, currentStepIndex, showContinue, showSuggestedAnswers, isGenerating, saveOnboardingProgress]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener(
@@ -244,22 +346,22 @@ export default function OnboardingChatScreen() {
             contentContainerStyle={{
               padding: spacing.lg,
               paddingBottom:
-                spacing.xxl +
+                spacing.lg +
                 (suggestedAnswers.length > 0 && !isGenerating && showSuggestedAnswers
-                  ? 52
+                  ? 4
                   : 0),
-              gap: spacing.md,
+              gap: spacing.lg,
             }}
             onContentSizeChange={scrollToEndDebounced}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="none">
-            {messages.map((msg) => (
+            {messages.map((msg, index) => (
               <ChatBubble
                 key={msg.id}
                 text={msg.text}
                 isGuide={msg.type === 'guide'}
                 animateWords={msg.animateWords}
-                entrance="slideIn"
+                entrance={index >= initialMessageCount ? 'slideIn' : undefined}
               />
             ))}
             {isGenerating && <TypingIndicator />}
@@ -274,7 +376,7 @@ export default function OnboardingChatScreen() {
               gap: spacing.md,
               borderTopWidth: 1,
               borderTopColor: '#E5E7EB',
-              paddingTop: spacing.md,
+              paddingTop: spacing.sm,
               backgroundColor: '#ffffff',
             }}>
             {showContinue ? (
@@ -282,26 +384,12 @@ export default function OnboardingChatScreen() {
             ) : (
               <>
                 {suggestedAnswers.length > 0 && !isGenerating && showSuggestedAnswers && (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    keyboardShouldPersistTaps="always"
-                    contentContainerStyle={{
-                      flexDirection: 'row',
-                      gap: spacing.sm,
-                      paddingHorizontal: spacing.lg,
-                    }}
-                    style={{ marginHorizontal: -spacing.lg }}>
-                    {suggestedAnswers.map((ans, idx) => (
-                      <View key={ans} style={{ flexShrink: 0 }}>
-                        <SuggestedAnswerButton
-                          label={ans}
-                          onPress={() => handleSuggestedPress(ans)}
-                          index={idx}
-                        />
-                      </View>
-                    ))}
-                  </ScrollView>
+                  <SuggestionsSection
+                  suggestedAnswers={suggestedAnswers}
+                  collapsed={suggestedAnswersCollapsed}
+                  onToggleCollapsed={() => setSuggestedAnswersCollapsed((c) => !c)}
+                  onSuggestedPress={handleSuggestedPress}
+                  />
                 )}
                 <OnboardingInputBar
                   inputRef={inputRef}

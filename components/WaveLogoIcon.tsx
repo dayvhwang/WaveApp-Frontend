@@ -22,7 +22,7 @@ interface WaveLogoIconProps {
 export function WaveLogoIcon({
   width,
   height = width * (VIEWBOX_HEIGHT / VIEWBOX_WIDTH),
-  color = '#111111',
+  color = '#0B5CFF',
   accessibilityLabel = 'Wave logo',
 }: WaveLogoIconProps) {
   return (

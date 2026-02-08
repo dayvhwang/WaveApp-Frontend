@@ -28,7 +28,7 @@ export function WaveLogo({ size = 'md', showWordmark = true, showIcon = true }: 
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      {showIcon && <WaveLogoIcon width={iconSize} color={colors.brandBlack} />}
+      {showIcon && <WaveLogoIcon width={iconSize} color="#0B5CFF" />}
       {showWordmark && (
         <WaveWordmark width={wordmarkWidth} color={colors.brandBlack} />
       )}

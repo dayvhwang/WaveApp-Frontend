@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, {
   Easing,
+  FadeOutUp,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -11,8 +12,10 @@ import Animated, {
 
 import { colors } from '@/src/theme/tokens';
 
-const DOT_SIZE = 8;
-const DOT_GAP = 6;
+const TYPING_EXIT = FadeOutUp.duration(380).easing(Easing.out(Easing.cubic));
+
+const DOT_SIZE = 5;
+const DOT_GAP = 4;
 
 export function TypingIndicator() {
   const dot1 = useSharedValue(0);
@@ -32,28 +35,30 @@ export function TypingIndicator() {
   }, [dot1, dot2, dot3]);
 
   const animatedDot1 = useAnimatedStyle(() => ({
-    transform: [{ translateY: dot1.value * -6 }],
+    transform: [{ translateY: dot1.value * -4 }],
     opacity: 0.5 + dot1.value * 0.5,
   }));
 
   const animatedDot2 = useAnimatedStyle(() => ({
-    transform: [{ translateY: dot2.value * -6 }],
+    transform: [{ translateY: dot2.value * -4 }],
     opacity: 0.5 + dot2.value * 0.5,
   }));
 
   const animatedDot3 = useAnimatedStyle(() => ({
-    transform: [{ translateY: dot3.value * -6 }],
+    transform: [{ translateY: dot3.value * -4 }],
     opacity: 0.5 + dot3.value * 0.5,
   }));
 
   return (
-    <View style={{ alignSelf: 'flex-start', maxWidth: '85%' }}>
+    <Animated.View
+      exiting={TYPING_EXIT}
+      style={{ alignSelf: 'flex-start', maxWidth: '85%' }}>
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           gap: DOT_GAP,
-          paddingVertical: 4,
+          paddingVertical: 2,
         }}>
         <Animated.View
           style={[
@@ -89,6 +94,6 @@ export function TypingIndicator() {
           ]}
         />
       </View>
-    </View>
+    </Animated.View>
   );
 }

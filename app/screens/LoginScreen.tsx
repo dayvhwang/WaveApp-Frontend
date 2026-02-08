@@ -18,7 +18,7 @@ import { typography } from '@/src/theme/typography';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { setScreen } = useApp();
+  const { setScreen, authReturnPath, setAuthReturnPath } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -28,8 +28,12 @@ export default function LoginScreen() {
   };
 
   const handleBack = () => {
-    setScreen('onboarding');
-    router.replace({ pathname: '/onboarding', params: { direction: 'back' } });
+    const returnTo = authReturnPath ?? '/onboarding';
+    setAuthReturnPath(null);
+    setScreen(
+      returnTo === '/(tabs)' ? 'app' : returnTo === '/login' ? 'login' : returnTo === '/signup' ? 'signup' : 'onboarding',
+    );
+    router.replace({ pathname: returnTo, params: { direction: 'back' } });
   };
 
   return (
@@ -54,7 +58,7 @@ export default function LoginScreen() {
           </Pressable>
         </View>
         <View style={{ alignItems: 'center', marginBottom: spacing.xxl }}>
-          <WaveLogoIcon width={40 * (387 / 231)} height={40} color="#111111" />
+          <WaveLogoIcon width={40 * (387 / 231)} height={40} color="#0B5CFF" />
         </View>
 
         <View style={{ gap: spacing.lg }}>

@@ -16,6 +16,12 @@ const WORD_DELAY_MS = 35;
 const WORD_DURATION_MS = 180;
 const ENTRANCE_DURATION_MS = 300;
 
+/** Returns ms until the full word-by-word reveal animation completes for the given text */
+export function getWordRevealDuration(text: string): number {
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  return Math.max(0, (wordCount - 1) * WORD_DELAY_MS + WORD_DURATION_MS);
+}
+
 function AnimatedTextReveal({
   text,
   style,
@@ -80,6 +86,7 @@ export function ChatBubble({
   entrance,
 }: ChatBubbleProps) {
   const translateX = useSharedValue(entrance ? (isGuide ? 20 : -20) : 0);
+  const translateY = useSharedValue(entrance ? 10 : 0);
   const opacity = useSharedValue(entrance ? 0 : 1);
 
   useEffect(() => {
@@ -88,15 +95,19 @@ export function ChatBubble({
         duration: ENTRANCE_DURATION_MS,
         easing: Easing.out(Easing.cubic),
       });
+      translateY.value = withTiming(0, {
+        duration: ENTRANCE_DURATION_MS,
+        easing: Easing.out(Easing.cubic),
+      });
       opacity.value = withTiming(1, {
         duration: ENTRANCE_DURATION_MS,
         easing: Easing.out(Easing.cubic),
       });
     }
-  }, [entrance, isGuide, translateX, opacity]);
+  }, [entrance, isGuide, translateX, translateY, opacity]);
 
   const entranceStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
     opacity: opacity.value,
   }));
 

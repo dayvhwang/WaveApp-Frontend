@@ -54,7 +54,12 @@ export default function RootLayout() {
             animation: (route.params as { direction?: string })?.direction === 'back' ? 'slide_from_left' : 'slide_from_right',
           })}
         />
-        <Stack.Screen name="signup" />
+        <Stack.Screen
+          name="signup"
+          options={({ route }) => ({
+            animation: (route.params as { direction?: string })?.direction === 'back' ? 'slide_from_left' : 'slide_from_right',
+          })}
+        />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
